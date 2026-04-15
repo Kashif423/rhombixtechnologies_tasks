@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Nexus — Social Network</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0b0d11;
+    --surface: #13161d;
+    --surface2: #1a1e28;
+    --border: #252a38;
+    --accent: #6c63ff;
+    --accent2: #ff6584;
+    --accent3: #43e97b;
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --online: #43e97b;
+    --radius: 14px;
+    --shadow: 0 4px 24px rgba(0,0,0,0.4);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── NOISE OVERLAY ── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none; z-index: 9999; opacity: .4;
+  }
+
+  /* ── TOP NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    height: 60px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 28px;
+    background: rgba(11,13,17,.85);
+    backdrop-filter: blur(18px);
+    border-bottom: 1px solid var(--border);
+  }
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800; font-size: 1.4rem;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    letter-spacing: -.5px;
+  }
+  .nav-search {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 30px; padding: 7px 16px;
+    width: 280px;
+  }
+  .nav-search input {
+    background: none; border: none; outline: none;
+    color: var(--text); font-family: 'DM Sans', sans-serif; font-size: .9rem;
+    width: 100%;
+  }
+  .nav-search input::placeholder { color: var(--muted); }
+  .nav-icons { display: flex; gap: 8px; align-items: center; }
+  .nav-icon-btn {
+    width: 38px; height: 38px; border-radius: 50%;
+    background: var(--surface2); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all .2s; position: relative; color: var(--text);
+    font-size: 1.1rem;
+  }
+  .nav-icon-btn:hover { background: var(--accent); border-color: var(--accent); }
+  .badge {
+    position: absolute; top: -3px; right: -3px;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: var(--accent2); font-size: .6rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid var(--bg);
+  }
+  .avatar-sm {
+    width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
+    border: 2px solid var(--accent); object-fit: cover;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: .85rem; color: #fff;
+    flex-shrink: 0;
+  }
+
+  /* ── LAYOUT ── */
+  .main-layout {
+    display: grid;
+    grid-template-columns: 260px 1fr 300px;
+    gap: 0;
+    margin-top: 60px;
+    min-height: calc(100vh - 60px);
+  }
+
+  /* ── SIDEBAR LEFT ── */
+  .sidebar-left {
+    padding: 24px 16px;
+    border-right: 1px solid var(--border);
+    position: sticky; top: 60px;
+    height: calc(100vh - 60px);
+    overflow-y: auto;
+  }
+  .sidebar-left::-webkit-scrollbar { width: 4px; }
+  .sidebar-left::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .user-card {
+    background: linear-gradient(135deg, var(--surface2), var(--surface));
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 16px;
+    text-align: center; margin-bottom: 20px;
+    position: relative; overflow: hidden;
+  }
+  .user-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0; height: 50px;
+    background: linear-gradient(135deg, var(--accent)40, var(--accent2)30);
+  }
+  .user-avatar-lg {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    margin: 18px auto 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 1.4rem; color: #fff;
+    border: 3px solid var(--bg);
+    position: relative; z-index: 1;
+  }
+  .user-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; }
+  .user-handle { color: var(--muted); font-size: .82rem; margin-bottom: 14px; }
+  .user-stats {
+    display: flex; justify-content: space-around;
+    border-top: 1px solid var(--border); padding-top: 12px;
+  }
+  .stat { text-align: center; }
+  .stat-num { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1rem; color: var(--accent); }
+  .stat-label { font-size: .72rem; color: var(--muted); }
+
+  .nav-menu { list-style: none; margin-bottom: 20px; }
+  .nav-menu li a {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 14px; border-radius: 10px;
+    color: var(--muted); text-decoration: none;
+    font-size: .92rem; transition: all .2s; cursor: pointer;
+  }
+  .nav-menu li a:hover, .nav-menu li a.active {
+    background: var(--surface2); color: var(--text);
+  }
+  .nav-menu li a.active { color: var(--accent); }
+  .nav-icon { font-size: 1.1rem; width: 20px; text-align: center; }
+
+  .sidebar-section-title {
+    font-family: 'Syne', sans-serif; font-size: .72rem;
+    font-weight: 700; color: var(--muted); letter-spacing: 1.5px;
+    text-transform: uppercase; padding: 0 14px; margin-bottom: 8px;
+  }
+
+  /* ── FEED ── */
+  .feed {
+    padding: 24px 28px;
+    max-width: 680px;
+  }
+
+  /* ── STORIES ── */
+  .stories {
+    display: flex; gap: 12px; overflow-x: auto;
+    padding-bottom: 4px; margin-bottom: 24px;
+    scrollbar-width: none;
+  }
+  .stories::-webkit-scrollbar { display: none; }
+  .story {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    cursor: pointer; flex-shrink: 0;
+  }
+  .story-ring {
+    width: 58px; height: 58px; border-radius: 50%;
+    padding: 2px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+  }
+  .story-ring.unseen { background: linear-gradient(135deg, var(--accent), var(--accent2)); }
+  .story-ring.seen { background: var(--border); }
+  .story-inner {
+    width: 100%; height: 100%; border-radius: 50%;
+    background: linear-gradient(135deg, #2a1f4e, #1f2a3e);
+    border: 2px solid var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: .9rem; color: #fff;
+  }
+  .story-label { font-size: .72rem; color: var(--muted); max-width: 58px; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .story-add .story-ring { background: var(--surface2); }
+  .story-add .story-inner { font-size: 1.4rem; background: var(--surface2); }
+
+  /* ── COMPOSE ── */
+  .compose-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px;
+    margin-bottom: 20px;
+  }
+  .compose-top { display: flex; gap: 12px; align-items: flex-start; }
+  .compose-input {
+    flex: 1;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 16px;
+    color: var(--text); font-family: 'DM Sans', sans-serif; font-size: .92rem;
+    resize: none; outline: none; min-height: 80px;
+    transition: border-color .2s;
+  }
+  .compose-input:focus { border-color: var(--accent); }
+  .compose-input::placeholder { color: var(--muted); }
+  .compose-actions {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 12px;
+  }
+  .compose-tools { display: flex; gap: 6px; }
+  .tool-btn {
+    background: none; border: none; color: var(--muted);
+    cursor: pointer; padding: 6px 10px; border-radius: 8px;
+    font-size: 1rem; transition: all .2s;
+  }
+  .tool-btn:hover { background: var(--surface2); color: var(--accent); }
+  .post-btn {
+    background: var(--accent); color: #fff; border: none;
+    padding: 9px 22px; border-radius: 10px;
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: .88rem;
+    cursor: pointer; transition: all .2s;
+  }
+  .post-btn:hover { background: #7c75ff; transform: translateY(-1px); }
+
+  /* ── FILTER TABS ── */
+  .feed-tabs {
+    display: flex; gap: 4px; margin-bottom: 20px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 4px;
+  }
+  .tab-btn {
+    flex: 1; background: none; border: none; color: var(--muted);
+    padding: 8px; border-radius: 9px;
+    font-family: 'DM Sans', sans-serif; font-size: .88rem;
+    cursor: pointer; transition: all .2s;
+  }
+  .tab-btn.active {
+    background: var(--accent); color: #fff; font-weight: 500;
+  }
+
+  /* ── POST CARD ── */
+  .post-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+    transition: border-color .2s;
+    animation: fadeUp .4s ease both;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .post-card:hover { border-color: var(--accent)50; }
+  .post-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+  .post-meta { flex: 1; }
+  .post-author {
+    font-family: 'Syne', sans-serif; font-weight: 700;
+    font-size: .95rem; cursor: pointer;
+  }
+  .post-author:hover { color: var(--accent); }
+  .post-time { font-size: .78rem; color: var(--muted); }
+  .post-more {
+    background: none; border: none; color: var(--muted);
+    cursor: pointer; font-size: 1.1rem; padding: 4px 8px;
+    border-radius: 8px; transition: background .2s;
+  }
+  .post-more:hover { background: var(--surface2); }
+  .post-body { font-size: .93rem; line-height: 1.65; color: var(--text); margin-bottom: 14px; }
+  .post-tag {
+    display: inline-block; background: var(--accent)20;
+    color: var(--accent); border-radius: 6px; padding: 2px 8px;
+    font-size: .78rem; margin-right: 4px; cursor: pointer;
+  }
+  .post-image {
+    width: 100%; border-radius: 10px; margin-bottom: 14px;
+    background: linear-gradient(135deg, var(--surface2), var(--border));
+    overflow: hidden;
+  }
+  .post-image-placeholder {
+    width: 100%; height: 220px;
+    background: linear-gradient(135deg, #1a1e28 0%, #252a38 50%, #1a1e28 100%);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.5rem; border-radius: 10px;
+  }
+  .post-actions {
+    display: flex; gap: 4px;
+    border-top: 1px solid var(--border); padding-top: 12px;
+  }
+  .action-btn {
+    display: flex; align-items: center; gap: 6px;
+    background: none; border: none; color: var(--muted);
+    cursor: pointer; padding: 7px 12px; border-radius: 8px;
+    font-family: 'DM Sans', sans-serif; font-size: .85rem;
+    transition: all .2s;
+  }
+  .action-btn:hover { background: var(--surface2); color: var(--text); }
+  .action-btn.liked { color: var(--accent2); }
+  .action-btn.liked .heart { animation: heartPop .3s ease; }
+  @keyframes heartPop {
+    0%   { transform: scale(1); }
+    50%  { transform: scale(1.4); }
+    100% { transform: scale(1); }
+  }
+
+  /* ── COMMENTS ── */
+  .comments-section {
+    display: none; border-top: 1px solid var(--border);
+    padding-top: 14px; margin-top: 8px;
+  }
+  .comments-section.open { display: block; }
+  .comment-item {
+    display: flex; gap: 10px; margin-bottom: 12px;
+  }
+  .comment-body {
+    background: var(--surface2); border-radius: 10px;
+    padding: 10px 14px; flex: 1;
+  }
+  .comment-author {
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: .82rem;
+    color: var(--accent); margin-bottom: 3px;
+  }
+  .comment-text { font-size: .87rem; color: var(--text); }
+  .comment-compose { display: flex; gap: 10px; margin-top: 10px; }
+  .comment-input {
+    flex: 1; background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 14px;
+    color: var(--text); font-family: 'DM Sans', sans-serif; font-size: .87rem;
+    outline: none;
+  }
+  .comment-input:focus { border-color: var(--accent); }
+  .comment-send {
+    background: var(--accent); color: #fff; border: none;
+    border-radius: 8px; padding: 8px 14px; cursor: pointer;
+    font-size: .85rem; transition: background .2s;
+  }
+  .comment-send:hover { background: #7c75ff; }
+
+  /* ── SIDEBAR RIGHT ── */
+  .sidebar-right {
+    padding: 24px 16px;
+    border-left: 1px solid var(--border);
+    position: sticky; top: 60px;
+    height: calc(100vh - 60px);
+    overflow-y: auto;
+  }
+  .sidebar-right::-webkit-scrollbar { width: 4px; }
+  .sidebar-right::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .widget-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+  .widget-title {
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: .88rem;
+    margin-bottom: 14px; color: var(--text);
+  }
+
+  .friend-request {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 14px;
+  }
+  .fr-info { flex: 1; }
+  .fr-name { font-weight: 500; font-size: .88rem; }
+  .fr-mutual { font-size: .75rem; color: var(--muted); }
+  .fr-actions { display: flex; gap: 6px; }
+  .btn-accept {
+    background: var(--accent); color: #fff; border: none;
+    border-radius: 7px; padding: 5px 12px;
+    font-size: .78rem; font-weight: 600; cursor: pointer;
+    transition: background .2s;
+  }
+  .btn-accept:hover { background: #7c75ff; }
+  .btn-decline {
+    background: var(--surface2); color: var(--muted);
+    border: 1px solid var(--border); border-radius: 7px;
+    padding: 5px 10px; font-size: .78rem; cursor: pointer;
+    transition: all .2s;
+  }
+  .btn-decline:hover { background: var(--border); color: var(--text); }
+
+  /* Trending */
+  .trend-item {
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 10px; border-radius: 9px;
+    cursor: pointer; transition: background .2s;
+    margin-bottom: 4px;
+  }
+  .trend-item:hover { background: var(--surface2); }
+  .trend-num {
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: 1.1rem; color: var(--border); width: 24px;
+  }
+  .trend-info { flex: 1; }
+  .trend-tag { font-weight: 600; font-size: .88rem; }
+  .trend-count { font-size: .75rem; color: var(--muted); }
+  .trend-icon { font-size: .9rem; }
+
+  /* Online friends */
+  .online-list { display: flex; flex-direction: column; gap: 10px; }
+  .online-item { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+  .online-item:hover .fr-name { color: var(--accent); }
+  .online-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--online); margin-left: auto;
+    box-shadow: 0 0 6px var(--online);
+  }
+  .away-dot { background: #facc15; box-shadow: 0 0 6px #facc15; }
+
+  /* ── NOTIFICATIONS PANEL ── */
+  .notif-panel {
+    position: fixed; top: 60px; right: 20px;
+    width: 320px; max-height: 420px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    z-index: 200;
+    display: none; overflow-y: auto;
+    animation: dropIn .2s ease;
+  }
+  @keyframes dropIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .notif-panel.open { display: block; }
+  .notif-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 16px; border-bottom: 1px solid var(--border);
+    font-family: 'Syne', sans-serif; font-weight: 700; font-size: .92rem;
+  }
+  .notif-item {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+    cursor: pointer; transition: background .2s;
+  }
+  .notif-item:hover { background: var(--surface2); }
+  .notif-item.unread { background: var(--accent)08; }
+  .notif-text { font-size: .85rem; }
+  .notif-text span { color: var(--accent); font-weight: 600; }
+  .notif-time { font-size: .75rem; color: var(--muted); margin-top: 3px; }
+  .notif-unread-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--accent); margin-left: auto; margin-top: 4px; flex-shrink: 0;
+  }
+  .mark-all {
+    background: none; border: none; color: var(--accent);
+    font-size: .8rem; cursor: pointer; padding: 0;
+  }
+
+  /* ── PRIVACY MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,.6);
+    backdrop-filter: blur(6px); z-index: 300;
+    display: flex; align-items: center; justify-content: center;
+    display: none;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 18px; padding: 28px; width: 400px;
+    animation: modalIn .25s ease;
+  }
+  @keyframes modalIn {
+    from { opacity: 0; transform: scale(.94); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  .modal-title {
+    font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.2rem;
+    margin-bottom: 20px; display: flex; justify-content: space-between;
+    align-items: center;
+  }
+  .modal-close {
+    background: none; border: none; color: var(--muted);
+    font-size: 1.3rem; cursor: pointer;
+  }
+  .privacy-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 0; border-bottom: 1px solid var(--border);
+  }
+  .privacy-label { font-size: .9rem; }
+  .privacy-sub { font-size: .78rem; color: var(--muted); margin-top: 2px; }
+  /* Toggle */
+  .toggle { position: relative; width: 44px; height: 24px; }
+  .toggle input { display: none; }
+  .toggle-slider {
+    position: absolute; inset: 0; background: var(--border);
+    border-radius: 30px; cursor: pointer; transition: background .2s;
+  }
+  .toggle-slider::before {
+    content: ''; position: absolute; top: 3px; left: 3px;
+    width: 18px; height: 18px; border-radius: 50%;
+    background: #fff; transition: transform .2s;
+  }
+  .toggle input:checked + .toggle-slider { background: var(--accent); }
+  .toggle input:checked + .toggle-slider::before { transform: translateX(20px); }
+
+  /* ── PROFILE MODAL ── */
+  .profile-modal {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 18px; width: 480px; overflow: hidden;
+    animation: modalIn .25s ease;
+  }
+  .profile-cover {
+    height: 120px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    position: relative;
+  }
+  .profile-avatar-wrap {
+    position: absolute; bottom: -30px; left: 24px;
+    width: 64px; height: 64px; border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border: 3px solid var(--surface);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 1.4rem; color: #fff;
+  }
+  .profile-body { padding: 42px 24px 24px; }
+  .profile-name { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.3rem; }
+  .profile-handle { color: var(--muted); font-size: .88rem; margin-bottom: 12px; }
+  .profile-bio { font-size: .9rem; line-height: 1.6; margin-bottom: 16px; color: var(--text)cc; }
+  .profile-stats { display: flex; gap: 24px; margin-bottom: 16px; }
+  .follow-btn {
+    background: var(--accent); color: #fff; border: none;
+    padding: 10px 28px; border-radius: 10px;
+    font-family: 'Syne', sans-serif; font-weight: 700; cursor: pointer;
+    transition: all .2s;
+  }
+  .follow-btn:hover { background: #7c75ff; }
+  .follow-btn.following {
+    background: var(--surface2); color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  /* ── TOAST ── */
+  .toast-container {
+    position: fixed; bottom: 24px; right: 24px; z-index: 400;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .toast {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 18px;
+    font-size: .88rem; box-shadow: var(--shadow);
+    display: flex; align-items: center; gap: 10px;
+    animation: toastIn .3s ease both;
+    max-width: 280px;
+  }
+  @keyframes toastIn {
+    from { opacity: 0; transform: translateX(30px); }
+    to   { opacity: 1; transform: translateX(0); }
+  }
+  .toast-icon { font-size: 1.1rem; }
+  .toast.success .toast-icon { color: var(--accent3); }
+  .toast.info .toast-icon { color: var(--accent); }
+  .toast.error .toast-icon { color: var(--accent2); }
+
+  /* ── SHARE MEDIA SECTION ── */
+  .media-preview {
+    display: flex; gap: 8px; margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .media-chip {
+    background: var(--accent)18; border: 1px solid var(--accent)40;
+    color: var(--accent); border-radius: 8px; padding: 5px 12px;
+    font-size: .82rem; display: flex; align-items: center; gap: 6px;
+  }
+  .media-chip button {
+    background: none; border: none; color: var(--accent); cursor: pointer; padding: 0;
+  }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  /* Responsive */
+  @media (max-width: 1100px) {
+    .sidebar-right { display: none; }
+    .main-layout { grid-template-columns: 240px 1fr; }
+  }
+  @media (max-width: 740px) {
+    .sidebar-left { display: none; }
+    .main-layout { grid-template-columns: 1fr; }
+    .feed { padding: 16px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Nexus</div>
+  <div class="nav-search">
+    <span>🔍</span>
+    <input type="text" placeholder="Search people, posts, topics…" id="searchInput" oninput="handleSearch(this.value)"/>
+  </div>
+  <div class="nav-icons">
+    <div class="nav-icon-btn" onclick="toggleNotifications()" title="Notifications">
+      🔔<span class="badge" id="notifBadge">3</span>
+    </div>
+    <div class="nav-icon-btn" onclick="openPrivacy()" title="Privacy Settings">⚙️</div>
+    <div class="avatar-sm" onclick="openProfile('You','@you','Frontend Developer · Building cool stuff 🚀','342','1.2k','87')">Y</div>
+  </div>
+</nav>
+
+<!-- NOTIFICATIONS PANEL -->
+<div class="notif-panel" id="notifPanel">
+  <div class="notif-header">
+    Notifications
+    <button class="mark-all" onclick="markAllRead()">Mark all read</button>
+  </div>
+  <div id="notifList"></div>
+</div>
+
+<!-- PRIVACY MODAL -->
+<div class="modal-overlay" id="privacyModal">
+  <div class="modal">
+    <div class="modal-title">
+      Privacy Settings
+      <button class="modal-close" onclick="closePrivacy()">✕</button>
+    </div>
+    <div class="privacy-row">
+      <div>
+        <div class="privacy-label">Public Profile</div>
+        <div class="privacy-sub">Allow anyone to view your profile</div>
+      </div>
+      <label class="toggle"><input type="checkbox" checked onchange="toastMsg('Profile visibility updated','success')"><span class="toggle-slider"></span></label>
+    </div>
+    <div class="privacy-row">
+      <div>
+        <div class="privacy-label">Show Online Status</div>
+        <div class="privacy-sub">Let friends see when you're active</div>
+      </div>
+      <label class="toggle"><input type="checkbox" checked onchange="toastMsg('Online status updated','success')"><span class="toggle-slider"></span></label>
+    </div>
+    <div class="privacy-row">
+      <div>
+        <div class="privacy-label">Tag Approval</div>
+        <div class="privacy-sub">Review tags before they appear</div>
+      </div>
+      <label class="toggle"><input type="checkbox" onchange="toastMsg('Tag approval updated','success')"><span class="toggle-slider"></span></label>
+    </div>
+    <div class="privacy-row">
+      <div>
+        <div class="privacy-label">Data Personalization</div>
+        <div class="privacy-sub">Use activity to personalize your feed</div>
+      </div>
+      <label class="toggle"><input type="checkbox" checked onchange="toastMsg('Data preference saved','info')"><span class="toggle-slider"></span></label>
+    </div>
+    <div class="privacy-row" style="border:none">
+      <div>
+        <div class="privacy-label">Two-Factor Authentication</div>
+        <div class="privacy-sub">Extra layer of account security</div>
+      </div>
+      <label class="toggle"><input type="checkbox" onchange="toastMsg('2FA updated — check your email','info')"><span class="toggle-slider"></span></label>
+    </div>
+  </div>
+</div>
+
+<!-- PROFILE MODAL -->
+<div class="modal-overlay" id="profileModal">
+  <div class="profile-modal">
+    <div class="profile-cover"></div>
+    <div class="profile-body">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div>
+          <div class="profile-name" id="pName"></div>
+          <div class="profile-handle" id="pHandle"></div>
+        </div>
+        <button class="modal-close" onclick="closeProfile()" style="margin-top:4px">✕</button>
+      </div>
+      <div class="profile-bio" id="pBio"></div>
+      <div class="profile-stats">
+        <div class="stat"><div class="stat-num" id="pPosts"></div><div class="stat-label">Posts</div></div>
+        <div class="stat"><div class="stat-num" id="pFollowers"></div><div class="stat-label">Followers</div></div>
+        <div class="stat"><div class="stat-num" id="pFollowing"></div><div class="stat-label">Following</div></div>
+      </div>
+      <button class="follow-btn" id="followBtn" onclick="toggleFollow()">Follow</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST CONTAINER -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- MAIN LAYOUT -->
+<div class="main-layout">
+
+  <!-- SIDEBAR LEFT -->
+  <aside class="sidebar-left">
+    <div class="user-card">
+      <div class="user-avatar-lg">Y</div>
+      <div class="user-name">Your Name</div>
+      <div class="user-handle">@you · Online</div>
+      <div class="user-stats">
+        <div class="stat"><div class="stat-num" id="postCount">0</div><div class="stat-label">Posts</div></div>
+        <div class="stat"><div class="stat-num">1.2k</div><div class="stat-label">Followers</div></div>
+        <div class="stat"><div class="stat-num">342</div><div class="stat-label">Following</div></div>
+      </div>
+    </div>
+
+    <ul class="nav-menu">
+      <li><a class="active" onclick="filterFeed('all')"><span class="nav-icon">🏠</span> Home</a></li>
+      <li><a onclick="filterFeed('explore')"><span class="nav-icon">🌐</span> Explore</a></li>
+      <li><a onclick="openPrivacy()"><span class="nav-icon">🔒</span> Privacy</a></li>
+      <li><a onclick="toggleNotifications()"><span class="nav-icon">🔔</span> Notifications <span style="margin-left:auto;background:var(--accent2);color:#fff;border-radius:20px;padding:1px 7px;font-size:.72rem" id="notifMenuBadge">3</span></a></li>
+      <li><a onclick="openProfile('You','@you','Frontend Developer · Building cool stuff 🚀','342','1.2k','87')"><span class="nav-icon">👤</span> Profile</a></li>
+      <li><a><span class="nav-icon">📌</span> Saved</a></li>
+    </ul>
+
+    <div class="sidebar-section-title">Suggested</div>
+    <ul class="nav-menu">
+      <li><a onclick="openProfile('Aisha Malik','@aisha.dev','UI/UX Designer & Creative Coder ✨','198','4.5k','312')"><span>👩‍💻</span> Aisha Malik</a></li>
+      <li><a onclick="openProfile('Rayan Qureshi','@rayan.q','Full-stack wizard. Coffee addict. ☕','87','2.1k','190')"><span>👨‍💻</span> Rayan Qureshi</a></li>
+      <li><a onclick="openProfile('Zara Noor','@zara.codes','Building the future, one commit at a time 🚀','412','8.9k','523')"><span>👩‍🎨</span> Zara Noor</a></li>
+    </ul>
+  </aside>
+
+  <!-- FEED -->
+  <main class="feed">
+
+    <!-- Stories -->
+    <div class="stories" id="storiesRow"></div>
+
+    <!-- Compose -->
+    <div class="compose-box">
+      <div class="compose-top">
+        <div class="avatar-sm" style="margin-top:2px">Y</div>
+        <textarea class="compose-input" id="composeText" placeholder="What's on your mind? Share something…" rows="3"></textarea>
+      </div>
+      <div id="mediaPreview" class="media-preview"></div>
+      <div class="compose-actions">
+        <div class="compose-tools">
+          <button class="tool-btn" onclick="attachMedia('📷 Photo')" title="Photo">📷</button>
+          <button class="tool-btn" onclick="attachMedia('🎥 Video')" title="Video">🎥</button>
+          <button class="tool-btn" onclick="attachMedia('😊 Emoji')" title="Emoji">😊</button>
+          <button class="tool-btn" onclick="attachMedia('📍 Location')" title="Location">📍</button>
+          <button class="tool-btn" onclick="toggleAudiencePicker()" title="Audience" id="audienceBtn">🌍 Everyone</button>
+        </div>
+        <button class="post-btn" onclick="submitPost()">Post</button>
+      </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="feed-tabs">
+      <button class="tab-btn active" onclick="filterFeed('all', this)">✨ For You</button>
+      <button class="tab-btn" onclick="filterFeed('following', this)">👥 Following</button>
+      <button class="tab-btn" onclick="filterFeed('trending', this)">🔥 Trending</button>
+    </div>
+
+    <!-- Posts -->
+    <div id="feedContainer"></div>
+  </main>
+
+  <!-- SIDEBAR RIGHT -->
+  <aside class="sidebar-right">
+
+    <!-- Friend Requests -->
+    <div class="widget-card">
+      <div class="widget-title">👋 Friend Requests</div>
+      <div id="friendRequests"></div>
+    </div>
+
+    <!-- Trending -->
+    <div class="widget-card">
+      <div class="widget-title">🔥 Trending Topics</div>
+      <div id="trendingList"></div>
+    </div>
+
+    <!-- Online -->
+    <div class="widget-card">
+      <div class="widget-title">🟢 Online Now</div>
+      <div class="online-list" id="onlineList"></div>
+    </div>
+
+  </aside>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────
+const USERS = [
+  { name: 'Aisha Malik',   handle: '@aisha.dev', initials: 'AM', bio: 'UI/UX Designer & Creative Coder ✨', posts: '198', followers: '4.5k', following: '312', color: '#6c63ff' },
+  { name: 'Rayan Qureshi', handle: '@rayan.q',   initials: 'RQ', bio: 'Full-stack wizard. Coffee addict. ☕', posts: '87', followers: '2.1k', following: '190', color: '#ff6584' },
+  { name: 'Zara Noor',     handle: '@zara.codes', initials: 'ZN', bio: 'Building the future, one commit at a time 🚀', posts: '412', followers: '8.9k', following: '523', color: '#43e97b' },
+  { name: 'Omar Farooq',   handle: '@omar.f',    initials: 'OF', bio: 'Cloud architect. DevOps enthusiast. ☁️', posts: '56', followers: '987', following: '143', color: '#f7971e' },
+  { name: 'Sana Butt',     handle: '@sana_dev',  initials: 'SB', bio: 'Mobile developer | Flutter & Swift 📱', posts: '230', followers: '3.2k', following: '402', color: '#a18cd1' },
+];
+
+let posts = [
+  { id: 1, user: USERS[0], time: '2m ago', text: 'Just shipped a redesign of our onboarding flow using micro-animations. The drop-off rate went down by 34% in the first week. UX really does matter! 🎯', tags: ['#UXDesign','#ProductDesign'], likes: 48, comments: [{author:'Rayan Qureshi', text:'This is insane! Would love a case study post.'}], liked: false, category: 'trending', hasImage: false },
+  { id: 2, user: USERS[1], time: '15m ago', text: 'Hot take: TypeScript strict mode should be the DEFAULT, not something you opt into. If you disagree, your future self is crying 😭', tags: ['#TypeScript','#WebDev'], likes: 112, comments: [{author:'Zara Noor', text:'100% agree. Saved me hours of debugging last sprint.'}], liked: false, category: 'following', hasImage: false },
+  { id: 3, user: USERS[2], time: '1h ago', text: 'Built a real-time collaboration tool with WebSockets and Redis pub/sub over the weekend. The latency is under 50ms. Pretty proud of this one 🚀\n\nStack: Next.js · Node.js · Socket.io · Redis · PostgreSQL', tags: ['#BuildInPublic','#FullStack'], likes: 204, comments: [], liked: false, category: 'trending', hasImage: true, imageEmoji: '⚡' },
+  { id: 4, user: USERS[3], time: '3h ago', text: 'Kubernetes tip: always set resource requests AND limits. Learned this the hard way when a rogue pod ate 90% of cluster RAM at 2am. Set. Your. Limits. 🙏', tags: ['#DevOps','#Kubernetes'], likes: 87, comments: [{author:'Aisha Malik', text:'This should be pinned as a public service announcement 😂'}], liked: false, category: 'following', hasImage: false },
+  { id: 5, user: USERS[4], time: '5h ago', text: 'Flutter 3.22 dropped and the new Impeller renderer is a game changer for complex animations. Finally no more jank on mid-range Android devices! 📱✨', tags: ['#Flutter','#MobileDev'], likes: 63, comments: [], liked: false, category: 'all', hasImage: false },
+];
+
+let currentTab = 'all';
+let notifCount = 3;
+let mediaAttachments = [];
+let audienceOptions = ['🌍 Everyone', '👥 Followers', '🔒 Only Me'];
+let audienceIndex = 0;
+
+const notifications = [
+  { text: '<span>Aisha Malik</span> liked your post about React hooks', time: '2m ago', unread: true, emoji: '❤️' },
+  { text: '<span>Rayan Qureshi</span> sent you a friend request', time: '10m ago', unread: true, emoji: '👋' },
+  { text: '<span>Zara Noor</span> commented: "This is gold!"', time: '45m ago', unread: true, emoji: '💬' },
+  { text: '<span>Omar Farooq</span> started following you', time: '2h ago', unread: false, emoji: '➕' },
+  { text: '<span>Sana Butt</span> shared your post', time: '5h ago', unread: false, emoji: '🔄' },
+];
+
+const friendRequests = [
+  { name: 'Bilal Ahmed', handle: '@bilal.a', initials: 'BA', mutual: '5 mutual friends' },
+  { name: 'Noor Fatima', handle: '@noorf', initials: 'NF', mutual: '12 mutual friends' },
+];
+
+const trending = [
+  { tag: '#WebDev', count: '14.2k posts', emoji: '💻' },
+  { tag: '#ReactJS', count: '9.8k posts', emoji: '⚛️' },
+  { tag: '#OpenAI', count: '34k posts', emoji: '🤖' },
+  { tag: '#Flutter', count: '7.1k posts', emoji: '📱' },
+  { tag: '#BuildInPublic', count: '5.4k posts', emoji: '🚀' },
+];
+
+const onlineFriends = [
+  { name: 'Aisha Malik', initials: 'AM', status: 'online' },
+  { name: 'Zara Noor',   initials: 'ZN', status: 'online' },
+  { name: 'Omar Farooq', initials: 'OF', status: 'away' },
+  { name: 'Sana Butt',   initials: 'SB', status: 'online' },
+];
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+function init() {
+  renderStories();
+  renderFeed();
+  renderNotifications();
+  renderFriendRequests();
+  renderTrending();
+  renderOnline();
+}
+
+// ── STORIES ───────────────────────────────────────────────────────────────
+function renderStories() {
+  const row = document.getElementById('storiesRow');
+  let html = `<div class="story story-add">
+    <div class="story-ring seen"><div class="story-inner">＋</div></div>
+    <div class="story-label">Add Story</div></div>`;
+  USERS.forEach(u => {
+    html += `<div class="story" onclick="toastMsg('${u.name}\'s story','info')">
+      <div class="story-ring unseen"><div class="story-inner">${u.initials}</div></div>
+      <div class="story-label">${u.name.split(' ')[0]}</div></div>`;
+  });
+  row.innerHTML = html;
+}
+
+// ── FEED ──────────────────────────────────────────────────────────────────
+function renderFeed() {
+  const container = document.getElementById('feedContainer');
+  const filtered = currentTab === 'all' ? posts
+    : currentTab === 'trending' ? posts.filter(p => p.category === 'trending' || p.likes > 80)
+    : posts.filter(p => p.category === 'following');
+
+  container.innerHTML = filtered.length === 0
+    ? `<div style="text-align:center;padding:60px 0;color:var(--muted)">Nothing here yet 🌙</div>`
+    : filtered.map(renderPost).join('');
+
+  document.getElementById('postCount').textContent = posts.filter(p => p.user.name === 'Your Name').length;
+}
+
+function renderPost(p) {
+  return `<div class="post-card" id="post-${p.id}">
+    <div class="post-header">
+      <div class="avatar-sm" onclick="openProfile('${p.user.name}','${p.user.handle}','${p.user.bio}','${p.user.posts}','${p.user.followers}','${p.user.following}')" style="background:linear-gradient(135deg,${p.user.color},${p.user.color}88)">${p.user.initials}</div>
+      <div class="post-meta">
+        <div class="post-author" onclick="openProfile('${p.user.name}','${p.user.handle}','${p.user.bio}','${p.user.posts}','${p.user.followers}','${p.user.following}')">${p.user.name}</div>
+        <div class="post-time">${p.user.handle} · ${p.time}</div>
+      </div>
+      <button class="post-more" onclick="showPostMenu(${p.id})">⋯</button>
+    </div>
+    ${p.hasImage ? `<div class="post-image"><div class="post-image-placeholder">${p.imageEmoji || '🖼️'}</div></div>` : ''}
+    <div class="post-body">${p.text.replace(/\n/g,'<br>')}<br><br>${p.tags.map(t=>`<span class="post-tag">${t}</span>`).join('')}</div>
+    <div class="post-actions">
+      <button class="action-btn ${p.liked ? 'liked' : ''}" onclick="toggleLike(${p.id})">
+        <span class="heart">${p.liked ? '❤️' : '🤍'}</span> <span id="likes-${p.id}">${p.likes}</span>
+      </button>
+      <button class="action-btn" onclick="toggleComments(${p.id})">💬 <span>${p.comments.length}</span></button>
+      <button class="action-btn" onclick="sharePost(${p.id})">🔄 Share</button>
+      <button class="action-btn" onclick="savePost(${p.id})">🔖 Save</button>
+    </div>
+    <div class="comments-section" id="comments-${p.id}">
+      ${p.comments.map(c=>`<div class="comment-item">
+        <div class="avatar-sm" style="width:30px;height:30px;font-size:.7rem">${c.author.split(' ').map(w=>w[0]).join('')}</div>
+        <div class="comment-body"><div class="comment-author">${c.author}</div><div class="comment-text">${c.text}</div></div>
+      </div>`).join('')}
+      <div class="comment-compose">
+        <input class="comment-input" id="cinput-${p.id}" placeholder="Write a comment…" onkeydown="if(event.key==='Enter')addComment(${p.id})"/>
+        <button class="comment-send" onclick="addComment(${p.id})">→</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── INTERACTIONS ──────────────────────────────────────────────────────────
+function toggleLike(id) {
+  const p = posts.find(x => x.id === id);
+  p.liked = !p.liked;
+  p.likes += p.liked ? 1 : -1;
+  const btn = document.querySelector(`#post-${id} .action-btn`);
+  btn.className = `action-btn ${p.liked ? 'liked' : ''}`;
+  btn.innerHTML = `<span class="heart">${p.liked ? '❤️' : '🤍'}</span> <span id="likes-${id}">${p.likes}</span>`;
+}
+
+function toggleComments(id) {
+  const section = document.getElementById(`comments-${id}`);
+  section.classList.toggle('open');
+}
+
+function addComment(id) {
+  const input = document.getElementById(`cinput-${id}`);
+  const text = input.value.trim();
+  if (!text) return;
+  const p = posts.find(x => x.id === id);
+  p.comments.push({ author: 'Your Name', text });
+  input.value = '';
+  const section = document.getElementById(`comments-${id}`);
+  const existing = section.querySelectorAll('.comment-item');
+  const div = document.createElement('div');
+  div.className = 'comment-item';
+  div.innerHTML = `<div class="avatar-sm" style="width:30px;height:30px;font-size:.7rem">Y</div>
+    <div class="comment-body"><div class="comment-author">Your Name</div><div class="comment-text">${text}</div></div>`;
+  section.insertBefore(div, section.querySelector('.comment-compose'));
+  toastMsg('Comment posted!', 'success');
+  // update count
+  const btn = document.querySelectorAll(`#post-${id} .action-btn`)[1];
+  if (btn) btn.innerHTML = `💬 <span>${p.comments.length}</span>`;
+}
+
+function sharePost(id) { toastMsg('Post shared to your timeline!', 'success'); }
+function savePost(id)  { toastMsg('Post saved 🔖', 'info'); }
+function showPostMenu(id) { toastMsg('Post options: Edit · Delete · Report', 'info'); }
+
+// ── COMPOSE ───────────────────────────────────────────────────────────────
+function attachMedia(type) {
+  mediaAttachments.push(type);
+  renderMediaPreview();
+}
+
+function renderMediaPreview() {
+  const el = document.getElementById('mediaPreview');
+  el.innerHTML = mediaAttachments.map((m, i) =>
+    `<div class="media-chip">${m} <button onclick="removeMedia(${i})">✕</button></div>`
+  ).join('');
+}
+
+function removeMedia(i) {
+  mediaAttachments.splice(i, 1);
+  renderMediaPreview();
+}
+
+function toggleAudiencePicker() {
+  audienceIndex = (audienceIndex + 1) % audienceOptions.length;
+  document.getElementById('audienceBtn').textContent = audienceOptions[audienceIndex];
+  toastMsg(`Audience: ${audienceOptions[audienceIndex]}`, 'info');
+}
+
+function submitPost() {
+  const text = document.getElementById('composeText').value.trim();
+  if (!text) { toastMsg('Write something first!', 'error'); return; }
+  const tags = (text.match(/#\w+/g) || []);
+  const newPost = {
+    id: Date.now(), user: { name: 'Your Name', handle: '@you', initials: 'Y', bio: '', posts: 0, followers: '1.2k', following: '342', color: '#6c63ff' },
+    time: 'just now', text, tags, likes: 0, comments: [], liked: false,
+    category: 'all', hasImage: mediaAttachments.some(m => m.includes('Photo') || m.includes('Video')),
+    imageEmoji: '🖼️'
+  };
+  posts.unshift(newPost);
+  document.getElementById('composeText').value = '';
+  mediaAttachments = [];
+  renderMediaPreview();
+  renderFeed();
+  toastMsg('Post published! 🚀', 'success');
+  updatePostCount();
+}
+
+function updatePostCount() {
+  document.getElementById('postCount').textContent = posts.filter(p => p.user.name === 'Your Name').length;
+}
+
+// ── TABS ──────────────────────────────────────────────────────────────────
+function filterFeed(tab, btn) {
+  currentTab = tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+  renderFeed();
+}
+
+// ── SEARCH ────────────────────────────────────────────────────────────────
+function handleSearch(q) {
+  if (!q) { renderFeed(); return; }
+  const ql = q.toLowerCase();
+  const orig = currentTab;
+  const container = document.getElementById('feedContainer');
+  const filtered = posts.filter(p =>
+    p.text.toLowerCase().includes(ql) ||
+    p.user.name.toLowerCase().includes(ql) ||
+    p.tags.some(t => t.toLowerCase().includes(ql))
+  );
+  container.innerHTML = filtered.length === 0
+    ? `<div style="text-align:center;padding:60px 0;color:var(--muted)">No results for "<b>${q}</b>" 🔍</div>`
+    : filtered.map(renderPost).join('');
+}
+
+// ── NOTIFICATIONS ────────────────────────────────────────────────────────
+function renderNotifications() {
+  const list = document.getElementById('notifList');
+  list.innerHTML = notifications.map(n => `
+    <div class="notif-item ${n.unread ? 'unread' : ''}" onclick="markRead(this)">
+      <span style="font-size:1.2rem">${n.emoji}</span>
+      <div style="flex:1"><div class="notif-text">${n.text}</div><div class="notif-time">${n.time}</div></div>
+      ${n.unread ? '<div class="notif-unread-dot"></div>' : ''}
+    </div>`).join('');
+}
+
+function toggleNotifications() {
+  const panel = document.getElementById('notifPanel');
+  panel.classList.toggle('open');
+}
+
+function markRead(el) {
+  el.classList.remove('unread');
+  el.querySelector('.notif-unread-dot')?.remove();
+  notifCount = Math.max(0, notifCount - 1);
+  updateNotifBadge();
+}
+
+function markAllRead() {
+  document.querySelectorAll('.notif-item').forEach(el => {
+    el.classList.remove('unread');
+    el.querySelector('.notif-unread-dot')?.remove();
+  });
+  notifCount = 0;
+  updateNotifBadge();
+  toastMsg('All notifications marked as read', 'success');
+}
+
+function updateNotifBadge() {
+  const b = document.getElementById('notifBadge');
+  const b2 = document.getElementById('notifMenuBadge');
+  if (notifCount === 0) { b.style.display = 'none'; b2.style.display = 'none'; }
+  else { b.textContent = notifCount; b2.textContent = notifCount; }
+}
+
+// ── FRIEND REQUESTS ───────────────────────────────────────────────────────
+function renderFriendRequests() {
+  const el = document.getElementById('friendRequests');
+  el.innerHTML = friendRequests.map((f, i) => `
+    <div class="friend-request" id="fr-${i}">
+      <div class="avatar-sm" style="width:38px;height:38px;font-size:.75rem">${f.initials}</div>
+      <div class="fr-info"><div class="fr-name">${f.name}</div><div class="fr-mutual">${f.mutual}</div></div>
+      <div class="fr-actions">
+        <button class="btn-accept" onclick="acceptFR(${i})">Accept</button>
+        <button class="btn-decline" onclick="declineFR(${i})">✕</button>
+      </div>
+    </div>`).join('');
+}
+
+function acceptFR(i) {
+  document.getElementById(`fr-${i}`)?.remove();
+  toastMsg(`${friendRequests[i].name} is now your friend! 🎉`, 'success');
+}
+function declineFR(i) {
+  document.getElementById(`fr-${i}`)?.remove();
+  toastMsg('Request declined', 'info');
+}
+
+// ── TRENDING ──────────────────────────────────────────────────────────────
+function renderTrending() {
+  document.getElementById('trendingList').innerHTML = trending.map((t, i) => `
+    <div class="trend-item" onclick="searchTrend('${t.tag}')">
+      <div class="trend-num">${i + 1}</div>
+      <div class="trend-info"><div class="trend-tag">${t.tag}</div><div class="trend-count">${t.count}</div></div>
+      <div class="trend-icon">${t.emoji}</div>
+    </div>`).join('');
+}
+
+function searchTrend(tag) {
+  document.getElementById('searchInput').value = tag;
+  handleSearch(tag);
+  toastMsg(`Showing posts for ${tag}`, 'info');
+}
+
+// ── ONLINE ────────────────────────────────────────────────────────────────
+function renderOnline() {
+  document.getElementById('onlineList').innerHTML = onlineFriends.map(f => `
+    <div class="online-item" onclick="openProfile('${f.name}','@${f.name.toLowerCase().replace(' ','.')}','','','','')">
+      <div class="avatar-sm" style="width:32px;height:32px;font-size:.7rem">${f.initials}</div>
+      <div class="fr-name" style="font-size:.88rem">${f.name}</div>
+      <div class="${f.status === 'online' ? 'online-dot' : 'online-dot away-dot'}"></div>
+    </div>`).join('');
+}
+
+// ── PROFILE MODAL ─────────────────────────────────────────────────────────
+let followState = false;
+function openProfile(name, handle, bio, following, followers, posts) {
+  document.getElementById('pName').textContent = name;
+  document.getElementById('pHandle').textContent = handle;
+  document.getElementById('pBio').textContent = bio;
+  document.getElementById('pPosts').textContent = posts;
+  document.getElementById('pFollowers').textContent = followers;
+  document.getElementById('pFollowing').textContent = following;
+  followState = false;
+  const btn = document.getElementById('followBtn');
+  btn.className = 'follow-btn';
+  btn.textContent = name === 'Your Name' ? 'Edit Profile' : 'Follow';
+  document.getElementById('profileModal').classList.add('open');
+}
+function closeProfile() { document.getElementById('profileModal').classList.remove('open'); }
+function toggleFollow() {
+  followState = !followState;
+  const btn = document.getElementById('followBtn');
+  btn.className = `follow-btn ${followState ? 'following' : ''}`;
+  btn.textContent = followState ? '✓ Following' : 'Follow';
+  toastMsg(followState ? 'Following! 🎉' : 'Unfollowed', followState ? 'success' : 'info');
+}
+
+// ── PRIVACY MODAL ─────────────────────────────────────────────────────────
+function openPrivacy() { document.getElementById('privacyModal').classList.add('open'); }
+function closePrivacy() { document.getElementById('privacyModal').classList.remove('open'); }
+
+// Close modals on overlay click
+document.getElementById('privacyModal').addEventListener('click', function(e) {
+  if (e.target === this) closePrivacy();
+});
+document.getElementById('profileModal').addEventListener('click', function(e) {
+  if (e.target === this) closeProfile();
+});
+
+// Close notif panel on outside click
+document.addEventListener('click', function(e) {
+  const panel = document.getElementById('notifPanel');
+  if (!panel.contains(e.target) && !e.target.closest('.nav-icon-btn')) {
+    panel.classList.remove('open');
+  }
+});
+
+// ── TOAST ────────────────────────────────────────────────────────────────
+function toastMsg(msg, type = 'info') {
+  const icons = { success: '✅', info: 'ℹ️', error: '❌' };
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.innerHTML = `<span class="toast-icon">${icons[type]}</span>${msg}`;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 3000);
+}
+
+// Real-time simulation via WebSocket (simulated)
+function simulateRealtime() {
+  const actions = [
+    () => { notifCount++; updateNotifBadge(); toastMsg('Aisha Malik liked your post ❤️', 'info'); },
+    () => toastMsg('Rayan Qureshi commented on a post 💬', 'info'),
+    () => toastMsg('New trending topic: #NextJS 🔥', 'info'),
+  ];
+  let i = 0;
+  setInterval(() => {
+    if (i < actions.length) { actions[i](); i++; }
+  }, 15000);
+}
+
+init();
+simulateRealtime();
+</script>
+</body>
+</html>
